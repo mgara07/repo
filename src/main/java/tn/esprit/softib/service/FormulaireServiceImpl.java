@@ -205,7 +205,7 @@ public class FormulaireServiceImpl implements IFormulaireService {
 		if (comptes != null & comptes.size() != 0) {
 			 Optional<Compte> compte = comptes.stream()
 					.filter(c -> c.getNatureCompte().toString().equals(natureCompte.toString())).findFirst();
-			if (compte != null & !compte.isEmpty()) {
+			if (compte != null) {
 				return false;
 			}
 		}
