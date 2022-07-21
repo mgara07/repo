@@ -15,9 +15,9 @@ public class SoftibApplication {
 	public static void main(String[] args) {
 		ApplicationContext ac = SpringApplication.run(SoftibApplication.class, args);
 		
-		PDFGenerator pDFGenerator = ac.getBean("pdfGenerator",PDFGenerator.class);
+	/*	PDFGenerator pDFGenerator = ac.getBean("pdfGenerator",PDFGenerator.class);
 		
-		pDFGenerator.generatePdfReport();
+		pDFGenerator.generatePdfReport();*/
 	}
 
 }

@@ -2,7 +2,7 @@ package tn.esprit.softib.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
+import lombok.extern.slf4j.Slf4j;
 
 import tn.esprit.softib.entity.CreditRequest;
 import tn.esprit.softib.entity.Insurance;
@@ -10,9 +10,11 @@ import tn.esprit.softib.repository.CreditRequestRepository;
 import tn.esprit.softib.repository.InsuranceRepository;
 import tn.esprit.softib.utility.SystemDeclarations;
 
+import java.text.MessageFormat;
 import java.util.Date;
 
 @Service
+@Slf4j
 public class InsuranceServiceImpl implements IInsuranceService {
 	
 	
@@ -33,19 +35,34 @@ public class InsuranceServiceImpl implements IInsuranceService {
             creditRequest.setInsurance(insurance);
             insuranceRepository.save(insurance);
             creditRequestRepository.save(creditRequest);
+            log.info("Insurance With Amount "+ insurance.getAmount() +" Added To Credit Request Successfully");
             return "Insurance With Amount "+ insurance.getAmount() +" Added To Credit Request Successfully";
+            
         }
+        log.error("Insurance Cannot Be Added : Credit Request Not Found");
         return "Insurance Cannot Be Added : Credit Request Not Found";
+        
     }
 
     @Override
     public String deleteInsurance(Integer id)  {
-        if (insuranceRepository.findById(id.longValue()).isPresent()) {
-            insuranceRepository.deleteById(id.longValue());
-            return "Insurance Deleted Successfully";
-        } else
-            return "Insurance Not Found";
+    	
+    if(insuranceRepository.findById(id.longValue()).isPresent()){
+    	Insurance InsuranceDelete = insuranceRepository.findById(id.longValue()).get();
+    
+    	if (InsuranceDelete.getCreditRequest()!= null) {
+        CreditRequest creditRequest = InsuranceDelete.getCreditRequest();
+        creditRequest.setInsurance(null);
+        creditRequestRepository.save(creditRequest);
+        log.info("Delete Insurance from Credit Request"); 
     }
+    	insuranceRepository.deleteById(id.longValue());
+        return "Insurance Deleted Successfully";
+    } 
+    log.error("Insurance does not exist");
+    return "Insurance does not exist" ;
+    
+}
 
     @Override
     public String updateInsurance(Integer id, Insurance newInsurance)  {

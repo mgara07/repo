@@ -8,6 +8,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
 import tn.esprit.softib.entity.Credit;
+import tn.esprit.softib.entity.Payment;
 import tn.esprit.softib.service.ICreditService;
 import tn.esprit.softib.service.IPaymentService;
 
@@ -21,7 +22,12 @@ public class CreditController {
 	@Autowired
 	IPaymentService paymentService;
 	
-
+	//create payment
+    @PostMapping(value = "payments/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.CREATED)
+    public ResponseEntity<Credit> createPayment(@RequestBody Payment payment, @PathVariable(value = "id") Integer id) throws Exception {
+        return new ResponseEntity<Credit>(creditService.addPayment(payment,id), HttpStatus.OK);
+    }
 
    //Delete credit
 	@DeleteMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)

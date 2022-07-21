@@ -5,14 +5,18 @@ import java.util.Set;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.Iterator;
+import lombok.extern.slf4j.Slf4j;
 
 import org.apache.xmlbeans.impl.values.XmlValueOutOfRangeException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import lombok.extern.slf4j.Slf4j;
 import tn.esprit.softib.repository.PaymentRepository;
 import tn.esprit.softib.utility.SystemDeclarations;
 import tn.esprit.softib.entity.Credit;
+import tn.esprit.softib.entity.CreditRequest;
+import tn.esprit.softib.entity.Insurance;
 import tn.esprit.softib.entity.Operation;
 import tn.esprit.softib.entity.Payment;
 import tn.esprit.softib.entity.Transaction;
@@ -21,6 +25,7 @@ import tn.esprit.softib.repository.CreditRepository;
 import tn.esprit.softib.repository.InsuranceRepository;
 
 @Service
+@Slf4j
 public class PaymentServiceImpl implements IPaymentService {
 	
 	@Autowired
@@ -33,11 +38,7 @@ public class PaymentServiceImpl implements IPaymentService {
     private CompteServiceImpl CompteService;
  
 
-    @Override
-    public Payment addPayment(Payment payment)  {
-        payment.setCreationDate(LocalDate.now());
-        return paymentRepository.save(payment);
-    }
+    
 
     @Override
     public String deletePayment(Integer id)  {
@@ -93,6 +94,7 @@ public class PaymentServiceImpl implements IPaymentService {
             {
                 Set<Payment> payments = paymentRepository.findAllNotPayedPayments(credit, CreditStatus.CREATED);
                 
+                if(credit.getCreditTerm() != null ) {
                 if(!payments.isEmpty()) {
                     
                 	Iterator<Payment> paymentIterator = payments.iterator();
@@ -125,13 +127,21 @@ public class PaymentServiceImpl implements IPaymentService {
                     return ("Payment for the date "+ payment.getPaymentDueDate()+ " of "+ payment.getPaymentAmount() + " is "+payment.getPaymentStatus().toString()+ " With Interest "+payment.getPaymentInterest());
                 }
                 else {
+                	log.warn("list of payment is empty" );
                     return ("List Of Payment Is Empty");
                 }
             }
             else {
-                return ("Credit Payed");
+            	Double RA = credit.getRemainingAmount() ;
+            	Double remaining = RA - 100.0 ;
+            	credit.setRemainingAmount(remaining);
+            	CreditRepository.save(credit);
+                return ("Your credit Remaining Amount after payment " + remaining);
             }
-        } else return ("Please specify a Credit Status");
+            }
+        } else 
+        	log.warn("you have to specify a credit status");
+        	return ("Please specify a Credit Status");
         }
         else {
             return ("Credit Not Found");

@@ -22,7 +22,10 @@ public class CreditRequest implements Serializable{
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     @Column(name = "id", nullable = false, updatable = false)
     private Long id;
+	@Column(name = "cin", nullable = false, length = 8)
     private Long cin;
+	@Column(name = "age", nullable = false, length = 3)
+	private Integer age;
     private String job;
     private String civilState;
     private Date creationDate;
@@ -32,6 +35,7 @@ public class CreditRequest implements Serializable{
     private Double creditAmount;
     private Boolean creditRepayment;
     private Double creditRepaymentAmount;
+   
     private String rejectionReason;
 	@ManyToOne
 	private User user;
@@ -42,7 +46,7 @@ public class CreditRequest implements Serializable{
     @OneToOne(fetch = FetchType.EAGER, mappedBy = "creditRequest")
     @JsonIgnore
     private Credit credit;
-    private Integer age;
+    
     private Double netSalary;
     @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "account_id")

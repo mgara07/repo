@@ -4,10 +4,11 @@ import java.util.Date;
 import java.util.List;
 import java.time.LocalDate;
 import java.util.Set;
-
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import lombok.extern.slf4j.Slf4j;
 import tn.esprit.softib.entity.Credit;
 import tn.esprit.softib.enums.CreditStatus;
 import tn.esprit.softib.enums.TypeCredit;
@@ -19,6 +20,7 @@ import tn.esprit.softib.repository.InsuranceRepository;
 import tn.esprit.softib.utility.SystemDeclarations;
 
 @Service
+@Slf4j
 public class CreditRequestServiceImpl implements ICreditRequestService {
 	
 	@Autowired
@@ -52,6 +54,7 @@ public class CreditRequestServiceImpl implements ICreditRequestService {
             creditRequestRepository.deleteById(id.longValue());
             return "Credit Request Deleted Successfully";
         } else
+        	
             return "Credit Request Not Found";
     }
 
@@ -110,7 +113,9 @@ public class CreditRequestServiceImpl implements ICreditRequestService {
             if (oldCreditRequest.getCreditRequestStatus().equals(CreditStatus.CREATED)) {
             	if (newCreditRequest.getRejectionReason() != null) {
                 oldCreditRequest.setRejectionReason(newCreditRequest.getRejectionReason());
-            } else return "please note rejection reasons";
+            } else 
+            	{log.error("You have to add a rejection reason");
+            	return "please note rejection reasons";}
             oldCreditRequest.setCreditRequestStatus(CreditStatus.REJECTED);
             creditRequestRepository.save(oldCreditRequest);
             return "Credit Request Reject"; 
@@ -152,6 +157,7 @@ public class CreditRequestServiceImpl implements ICreditRequestService {
     	} else return "Credit Request Not Found";    	
     }
 
+    
     @Override
     public Credit mapCreditFromCreditRequest(CreditRequest creditRequest) {
         Credit credit = new Credit();
@@ -195,11 +201,17 @@ public class CreditRequestServiceImpl implements ICreditRequestService {
 
     @Override
     public String treatCreditRequest(Integer id) {
+    	String msg ="";
         if (creditRequestRepository.findById(id.longValue()).isPresent()) {
             CreditRequest creditRequest = creditRequestRepository.findById(id.longValue()).get();
             creditRequest = checkEligibaleCreditRequest(creditRequest);
+            
             creditRequestRepository.save(creditRequest);
-            return ("Your credit has been "+ creditRequest.getCreditRequestStatus()+ "\n" + "   Rejection Reaseon : " + creditRequest.getRejectionReason());
+            if (creditRequest.getCreditRequestStatus().equals(CreditStatus.VALIDATED)) {
+            	msg = createCreditFromCreditRequest(id);
+            	
+            }
+            return ("Your credit has been "+ creditRequest.getCreditRequestStatus()+ "\n" + msg + "\n" +"   Rejection Reaseon : " + creditRequest.getRejectionReason());
 
         }
         return "Credit Request Not Found";
@@ -222,32 +234,35 @@ public class CreditRequestServiceImpl implements ICreditRequestService {
             if (rejectionReason.length() > 0) {
                 rejectionReason.append(", ");
             }
-            rejectionReason.append(SystemDeclarations.CREDIT_NOT_ENOUGH_SALARY);
+            rejectionReason.append(SystemDeclarations.CREDIT_NOT_ENOUGH_SALARY+" because the Amount To Pay For Salary: "+  Math.round(calculateAmountToPayForSalary(creditRequest))  );
             check = false;
         }
-    }
+    } 
         if (creditRequest.getType()!= null) {
         if (creditRequest.getType().toString().equals(TypeCredit.CONSUMPTION.toString())) {
-            if (creditRequest.getCreditAmount() > 20000) {
+        	 if (creditRequest.getCreditAmount() != null) {
+        	if (creditRequest.getCreditAmount() > 20000) {
                 check = false;
                 if (rejectionReason.length() > 0) {
                     rejectionReason.append(", ");
                 }
                 rejectionReason.append(SystemDeclarations.CREDIT_CONSUMPTION_AMOUNT_EXCEEDED);
-            }
+            }}
+            if (creditRequest.getCreditTerm() != null) {
             if (creditRequest.getCreditTerm() > 36) {
                 check = false;
                 if (rejectionReason.length() > 0) {
                     rejectionReason.append(", ");
                 }
                 rejectionReason.append(SystemDeclarations.CREDIT_CONSUMPTION_CREDIT_TERM_EXCEEDED);
-            }
+            }}
         }
         
         
         
         if (creditRequest.getType().toString().equals(TypeCredit.CAR.toString())) {
-            if (creditRequest.getCreditTerm() > 87) {
+        	 if (creditRequest.getCreditTerm() != null) {
+        	if (creditRequest.getCreditTerm() > 87) {
                 check = false;
                 if (rejectionReason.length() > 0) {
                     rejectionReason.append(", ");
@@ -255,16 +270,18 @@ public class CreditRequestServiceImpl implements ICreditRequestService {
                 rejectionReason.append(SystemDeclarations.CREDIT_CAR_CREDIT_TERM_EXCEEDED);
             }
         }
+        }
         
         
         if (creditRequest.getType().toString().equals(TypeCredit.HOME.toString())) {
-            if (creditRequest.getCreditTerm() > 300) {
+        	 if (creditRequest.getCreditTerm() != null) {
+        	if (creditRequest.getCreditTerm() > 300) {
                 check = false;
                 if (rejectionReason.length() > 0) {
                     rejectionReason.append(", ");
                 }
                 rejectionReason.append(SystemDeclarations.CREDIT_HOME_CREDIT_TERM_EXCEEDED);
-            }
+            }}
         }
         
         }

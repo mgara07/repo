@@ -27,6 +27,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 	
 	@Query("SELECT u FROM User u JOIN u.roles r WHERE r.name LIKE '%:roleName%'")
 	List<User> findClients(ERole roleName);
-	 @Query(nativeQuery=true, value = "select * FROM user u WHERE DATE(u.creation_Date) < DATE(NOW() - INTERVAL 7 DAY)")
+	
+	 @Query(nativeQuery=true, value = "DELETE FROM User u WHERE DATE(u.creation_Date) < DATE(NOW() - INTERVAL 7 DAY)")
 	 public Compte deleteAutoUser();
 }

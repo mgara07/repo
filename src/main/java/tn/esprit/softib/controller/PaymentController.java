@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import tn.esprit.softib.entity.Credit;
 import tn.esprit.softib.entity.Payment;
 import tn.esprit.softib.entity.User;
 import tn.esprit.softib.service.IPaymentService;
@@ -20,12 +21,7 @@ public class PaymentController {
     IPaymentService paymentService;
 
 	
-	//create payment
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<Payment> createPayment(@RequestBody Payment payment) throws Exception {
-        return new ResponseEntity<>(paymentService.addPayment(payment), HttpStatus.OK);
-    }
+	
 
     //delete payment
     @DeleteMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)

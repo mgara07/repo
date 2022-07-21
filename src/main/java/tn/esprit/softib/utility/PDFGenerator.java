@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,13 +23,16 @@ import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
 
+import lombok.extern.slf4j.Slf4j;
 import tn.esprit.softib.utility.SystemDeclarations;
 import tn.esprit.softib.entity.Credit;
 import tn.esprit.softib.entity.CreditRequest;
 import tn.esprit.softib.repository.CreditRepository;
 import tn.esprit.softib.repository.CreditRequestRepository;
+import tn.esprit.softib.service.CreditRequestServiceImpl;
 
 @Component("pdfGenerator")
+@Slf4j
 public class PDFGenerator {
 	
 	@Value("${pdfDir}")
@@ -73,7 +77,9 @@ public class PDFGenerator {
 			createTable(document,noOfColumns);
 			addFooter(document);
 			document.close();
+			log.info("------------------Your PDF Report is ready!-------------------------");
 			System.out.println("------------------Your PDF Report is ready!-------------------------");
+			
 
 		} catch (FileNotFoundException | DocumentException e) {
 			// TODO Auto-generated catch block

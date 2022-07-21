@@ -25,6 +25,20 @@ public class CreditServiceImpl implements ICreditService {
     private PaymentRepository paymentRepository;
     
     @Override
+    public Credit addPayment(Payment payment, Integer creditId)  {
+    	Credit credit = creditRepository.findById(creditId.longValue()).get();
+        Set<Payment> payments = credit.getPayments();       
+        payments.add(payment);
+        credit.setPayments(payments);
+        
+        payment.setCreationDate(LocalDate.now());
+        paymentRepository.save(payment);
+        creditRepository.save(credit);
+        return credit;
+    }
+    
+    
+    @Override
     public Credit addCredit(Credit credit) {
     	
     	if (credit.getCreditStatus() != null) {

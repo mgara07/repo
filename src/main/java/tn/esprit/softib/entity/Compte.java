@@ -18,6 +18,7 @@ import javax.persistence.Lob;
 
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -34,30 +35,31 @@ import tn.esprit.softib.enums.TypeTransaction;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Compte implements Serializable{
-	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
-	private long id;
-	private String nomComplet;
-	private Nature natureCompte;
-	private String rib;
-	private String iban;
-	private String codeBic;
-	private BigDecimal solde;
-	private String email;
-	private boolean emailsent;
-	private boolean status;
-	@Lob
-	private byte[] data;
-	@ManyToOne(cascade = CascadeType.ALL)
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private long id;
+    @NotNull(message = "Name may not be null")
+    private String nomComplet;
+    private Nature natureCompte;
+    private String rib;
+    private String iban;
+    private String codeBic;
+    private BigDecimal solde;
+    private String email;
+    private boolean emailsent;
+    private boolean status;
+    @Lob
+    private byte[] data;
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "user_id")
-	@JsonIgnore
-	private User user;
-	@OneToMany(cascade = CascadeType.ALL,
-			mappedBy="compte")
-	private Set<Credit> credits;
-	 @OneToMany(mappedBy="compte")
-	    private Collection<Operation> operations;
+    @JsonIgnore
+    private User user;
+    @OneToMany(cascade = CascadeType.ALL,
+            mappedBy="compte")
+    private Set<Credit> credits;
+     @OneToMany(mappedBy="compte")
+        private Collection<Operation> operations;
 
-	
-	
+    
+
 }

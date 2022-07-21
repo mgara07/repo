@@ -3,6 +3,7 @@ package tn.esprit.softib.controller;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -50,9 +51,13 @@ import tn.esprit.softib.Response.CompteResponse;
 import tn.esprit.softib.Response.ResponseMessage;
 import tn.esprit.softib.component.EmailServiceImpl;
 import tn.esprit.softib.entity.Compte;
+import tn.esprit.softib.entity.User;
+import tn.esprit.softib.enums.CreditStatus;
 import tn.esprit.softib.repository.CompteRepository;
 import tn.esprit.softib.service.ICompteService;
+import tn.esprit.softib.service.IUserService;
 import tn.esprit.softib.util.GeneratePdfReport;
+import tn.esprit.softib.util.QRCodeGenerator;
 
 
 @RestController
@@ -67,13 +72,28 @@ public class CompteController {
 	@Autowired
 	CompteRepository compteRepository;
 	@Autowired
+	IUserService userservice;
+	@Autowired
     private JobLauncher jobLauncher;
 	 @Autowired
 	    @Qualifier("emailSenderJob")
 	    private Job emailSenderJob;
-	
+	 
+	 private static final String QR_CODE_IMAGE_PATH = "./Files/QRCode.png";
+	 
+	 	//create compte after create user (to affect a compte to a user)
+		@PostMapping("/save/{id}")
+		@ResponseBody
+		@PreAuthorize("hasRole('ADMIN')")
+		public Compte save(@RequestBody Compte compte,@PathVariable("id") Long id){
+			compte.setUser(userservice.getUserById(id));
+			Compte compteResult = compteService.addCompte(compte);
+			return compteResult;
+		}
+		
 	@GetMapping("/findAll")
 	@ResponseBody
+	@PreAuthorize("hasRole('ADMIN')")
 	public List<Compte> findAll(){
 		List<Compte> comptes = (List<Compte>) compteService.getAllComptes();
 		return comptes;
@@ -81,42 +101,30 @@ public class CompteController {
 	
 	@GetMapping("/findById/{id}")
 	@ResponseBody
+	@PreAuthorize("hasRole('ADMIN')")
 	public Compte findById(@PathVariable("id") Long id){
 		Compte compte = compteService.getCompteById(id);
 		return compte;
 	}
 	
-	@PostMapping("/save")
-	@ResponseBody
-	public Compte save(@RequestBody Compte compte){
-		Compte compteResult = compteService.addCompte(compte);
-		return compteResult;
-	}
-	
-	@PreAuthorize("hasRole('ADMIN')")
-	@DeleteMapping("/delete/{id}")
-	@ResponseBody
-	public void delete(@PathVariable("id") Long id){
-		compteService.deleteCompte(id);
-	}
 	
 	@PutMapping("/update")
 	@ResponseBody
-	public Compte update(@RequestBody Compte compte){
+	@PreAuthorize("hasRole('ADMIN')")
+	public ResponseEntity<ResponseMessage> update(@RequestBody Compte compte){
 		return compteService.updateCompte(compte);
 	}
 	
-    @GetMapping("/test")
-    public ResponseEntity<ResponseMessage> getAllCompte() {
-        try {
-            emailService.sendSimpleMessage("hello@world.com", "This is the message", "Thank you for registering with us");
-        } catch (SendFailedException sendFailedException) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseMessage("failed to send email"));
-        }
-        return ResponseEntity.status(HttpStatus.OK).body(new ResponseMessage("email sent"));
-    }
-
+	
+	@DeleteMapping("/delete/{id}")
+	@ResponseBody
+	@PreAuthorize("hasRole('ADMIN')")
+	public  ResponseEntity<ResponseMessage> delete(@PathVariable("id") Long id){
+		return compteService.deleteCompte(id);
+	}
+	
     @GetMapping("/count")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CompteResponse> getTotalCompte() {
         long compteCount = compteRepository.count();
 
@@ -128,20 +136,27 @@ public class CompteController {
 
         return  ResponseEntity.status(HttpStatus.OK).body(response);
     }
+    
+	@GetMapping("/statistique")
+	public List<Compte> getStatistique() {
 
-    @GetMapping("/email-sent")
-    public ResponseEntity<CompteResponse> getEmailsSent() {
-        long ordersCount = compteRepository.countByEmailsent(true);
+		List<Compte> listF =compteService.getSatatistiqueParSalaire();
 
-        CompteResponse response = new CompteResponse();
-        response.setMessage("success");
-        HashMap<String, Long> count = new HashMap<>();
-        count.put("total", ordersCount);
-        response.setResponse(count);
 
-        return  ResponseEntity.status(HttpStatus.OK).body(response);
+		return listF;
+	}
+	
+	
+    @GetMapping("/test")
+    public ResponseEntity<ResponseMessage> simpleEmail() {
+        try {
+            emailService.sendSimpleMessage("boutrifyasmine55@gmail.com", "This is the message", "Thank you for registering with us");
+        } catch (SendFailedException sendFailedException) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseMessage("failed to send email"));
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(new ResponseMessage("email sent"));
     }
-
+    
     @PostMapping("/send/notification")
     public ResponseEntity<ResponseMessage> sendEmails() {
         Random random = new Random();
@@ -167,27 +182,18 @@ public class CompteController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseMessage(e.getMessage()));
         }
     }
-    
-    @RequestMapping(value = "/pdfreport/{id}", method = RequestMethod.GET,
-            produces = MediaType.APPLICATION_PDF_VALUE)
-    public ResponseEntity<InputStreamResource> compteReport(@PathVariable("id") Long id) throws MalformedURLException, IOException, DocumentException {
-    	
-    	
-    	Compte compte = compteService.getCompteById(id);
 
-    	List<Compte> comptes = (List<Compte>) compteService.getAllComptes();
-    	
+    @GetMapping("/email-sent")
+    public ResponseEntity<CompteResponse> getEmailsSent() {
+        long ordersCount = compteRepository.countByEmailsent(true);
 
-        ByteArrayInputStream bis = GeneratePdfReport.comptesReport(compte);
+        CompteResponse response = new CompteResponse();
+        response.setMessage("success");
+        HashMap<String, Long> count = new HashMap<>();
+        count.put("total", ordersCount);
+        response.setResponse(count);
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Content-Disposition", "inline; filename=citiesreport.pdf");
-
-        return ResponseEntity
-                .ok()
-                .headers(headers)
-                .contentType(MediaType.APPLICATION_PDF)
-                .body(new InputStreamResource(bis));
+        return  ResponseEntity.status(HttpStatus.OK).body(response);
     }
     
     @PostMapping("/upload/{id}")
@@ -204,6 +210,50 @@ public class CompteController {
         return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(new ResponseMessage(message));
       }
     }
+
+    //test this dans unauth
+    
+    @RequestMapping(value = "/pdfreport/{id}", method = RequestMethod.GET,
+            produces = MediaType.APPLICATION_PDF_VALUE)
+    public ResponseEntity<InputStreamResource> compteReport(@PathVariable("id") Long id) throws MalformedURLException, IOException, DocumentException {
+    	
+    	
+    	Compte compte = compteService.getCompteById(id);
+
+    	List<Compte> comptes = (List<Compte>) compteService.getAllComptes();
+    	
+
+        ByteArrayInputStream bis = GeneratePdfReport.comptesReport(compte);
+    	//ByteArrayInputStream bis = GeneratePdfReport..generatePdfReport();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Disposition", "inline; filename=citiesreport.pdf");
+
+       return ResponseEntity
+                .ok()
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(new InputStreamResource(bis));
+        
+    }
+    
+   /* @RequestMapping(value = "/pdfreport/{id}")
+    public void compteReport(@PathVariable("id") Long id) throws MalformedURLException, IOException, DocumentException {
+    	
+    	
+    	Compte compte = compteService.getCompteById(id);
+
+    	List<Compte> comptes = (List<Compte>) compteService.getAllComptes();
+    	
+
+        //ByteArrayInputStream bis = GeneratePdfReport.comptesReport(compte);
+    	//ByteArrayInputStream bis = GeneratePdfReport..generatePdfReport();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Disposition", "inline; filename=citiesreport.pdf");
+
+        GeneratePdfReport.generatePdfReport();
+    }*/
     
   /*  @DeleteMapping("/auto")
     public ResponseEntity<ResponseMessage> autoDelete() {
@@ -217,6 +267,38 @@ public class CompteController {
         return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(new ResponseMessage(message));
       }
     } */
+    
+    @PostMapping("/verifCard/{id}")
+    public ResponseEntity<ResponseMessage> verifCard(
+    		@PathVariable("id") long id) {
+        return compteService.verifCardType(id);
+    }
+    
+	
+
+	
+    @GetMapping(value = "/genrateAndDownloadQRCode/{id}/{width}/{height}")
+		public void download(
+				@PathVariable("id") long id,
+				@PathVariable("width") Integer width,
+				@PathVariable("height") Integer height)
+			    throws Exception {
+    				Compte compte = compteService.getCompteById(id);
+			        QRCodeGenerator.generateQRCodeImage(compte.getRib(), width, height, QR_CODE_IMAGE_PATH);
+			    }
+//essayer le path uauth
+    @GetMapping(value = "/genrateQRCode/{id}/{width}/{height}")
+   	public ResponseEntity<byte[]> generateQRCode(
+   			@PathVariable("id") long id,
+   			@PathVariable("width") Integer width,
+   			@PathVariable("height") Integer height)
+   		    throws Exception {
+   				Compte compte = compteService.getCompteById(id);
+   		        return ResponseEntity.status(HttpStatus.OK).body(QRCodeGenerator.getQRCodeImage(compte.getRib(), width, height));
+   		    }
+    
+    
+    
     
     
     

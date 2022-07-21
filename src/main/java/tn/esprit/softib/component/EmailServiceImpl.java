@@ -15,7 +15,7 @@ public class EmailServiceImpl {
 	    public void sendSimpleMessage(String to, String subject, String text) throws SendFailedException {
 
 	        SimpleMailMessage message = new SimpleMailMessage();
-	        message.setFrom("noreply@theoneamin.com");
+	        message.setFrom("yasmine.boutrif@esprit.tn");
 	        message.setTo(to);
 	        message.setSubject(subject);
 	        message.setText(text);
