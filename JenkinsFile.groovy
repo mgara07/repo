@@ -1,7 +1,7 @@
 pipeline {
     agent any
     environment {
-    registry = "mgara07"
+    registry = "mgara07/softib"
     registryCredential = 'DockerHub'
     dockerImage = ''
   }
