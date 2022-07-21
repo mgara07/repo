@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import tn.esprit.softib.entity.BanUserDescription;
-import jdk.internal.org.jline.utils.Log;
 import tn.esprit.softib.Response.ResponseMessage;
 import tn.esprit.softib.entity.Formulaire;
 import tn.esprit.softib.entity.User;
@@ -106,7 +105,7 @@ public class UserController {
 	      String message = "";
 	      try {
 	    	  userService.deleteAutoUser();
-	    	  Log.debug(userService.deleteAutoUser());
+	    	  
 	        message = "user deleted automatically ";
 	        return ResponseEntity.status(HttpStatus.OK).body(new ResponseMessage(message));
 	      } catch (Exception e) {

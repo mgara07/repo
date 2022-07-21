@@ -14,7 +14,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import lombok.extern.slf4j.Slf4j;
 
-import jdk.internal.org.jline.utils.Log;
 import tn.esprit.softib.entity.Insurance;
 import tn.esprit.softib.service.IInsuranceService;
 import tn.esprit.softib.service.InsuranceServiceImpl;

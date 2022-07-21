@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import jdk.internal.org.jline.utils.Log;
 import tn.esprit.softib.Response.ResponseMessage;
 import tn.esprit.softib.entity.Card;
 import tn.esprit.softib.entity.CardRequest;
