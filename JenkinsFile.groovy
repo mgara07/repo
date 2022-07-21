@@ -8,7 +8,7 @@ pipeline {
     stages {
          stage('clone and clean repo') {
             steps {
-                git changelog: false, branch: 'master',  credentialsId: 'mgara07', poll: false, url: 'https://github.com/mgara07/repo.git'
+                git changelog: false, branch: 'master',  credentialsId: 'mgara07', poll: false, url: 'https://github.com/mgara07/softib'
                 
             }
         }
